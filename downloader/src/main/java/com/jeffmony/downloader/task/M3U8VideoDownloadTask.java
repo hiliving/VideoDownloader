@@ -4,8 +4,8 @@ import com.jeffmony.downloader.VideoDownloadConfig;
 import com.jeffmony.downloader.VideoDownloadException;
 import com.jeffmony.downloader.listener.IDownloadTaskListener;
 import com.jeffmony.downloader.m3u8.M3U8;
+import com.jeffmony.downloader.m3u8.M3U8Constants;
 import com.jeffmony.downloader.m3u8.M3U8Ts;
-import com.jeffmony.downloader.m3u8.M3U8Utils;
 import com.jeffmony.downloader.model.VideoTaskItem;
 import com.jeffmony.downloader.utils.HttpUtils;
 import com.jeffmony.downloader.utils.LogUtils;
@@ -17,10 +17,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -101,7 +98,7 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
         }
         startTimerTask();
         mCurTs = curDownloadTs;
-        LogUtils.i(TAG,"startDownload curDownloadTs = " + curDownloadTs);
+        LogUtils.i(TAG, "startDownload curDownloadTs = " + curDownloadTs);
         mDownloadExecutor = new ThreadPoolExecutor(
                 THREAD_COUNT, THREAD_COUNT, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(), Executors.defaultThreadFactory(),
@@ -119,7 +116,7 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
                     try {
                         downloadTsTask(ts, tsFile, tsName);
                     } catch (Exception e) {
-                        LogUtils.w(TAG,"M3U8TsDownloadThread download failed, exception=" +
+                        LogUtils.w(TAG, "M3U8TsDownloadThread download failed, exception=" +
                                 e);
                         notifyDownloadError(e);
                     }
@@ -134,7 +131,7 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
             throws Exception {
         if (!tsFile.exists()) {
             // ts is network resource, download ts file then rename it to local file.
-            downloadFile(ts.getUrl(), tsFile);
+            downloadFile(ts.getUrl(), tsFile, ts.getKeyUri(), ts.getMethod());
         }
 
         if (tsFile.exists()) {
@@ -199,17 +196,18 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
             }
             mTaskItem.setIsCompleted(isCompleted);
             if (isCompleted) {
+                try {
+                    createLocalM3U8File();
+                } catch (Exception e) {
+                    notifyDownloadError(e);
+                }
                 mTaskItem.setTotalSize(mCurrentCachedSize);
                 mTotalSize = mCurrentCachedSize;
                 mDownloadTaskListener.onTaskProgress(100.0f,
                         mCurrentCachedSize, mCurrentCachedSize, mM3U8);
                 mDownloadTaskListener.onTaskFinished(mTotalSize);
                 cancelTimer();
-                try {
-                    createLocalM3U8File();
-                } catch (Exception e) {
-                    notifyDownloadError(e);
-                }
+
             }
         }
     }
@@ -232,7 +230,7 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
         notifyOnTaskFailed(e);
     }
 
-    public boolean downloadFile(String url, File file) throws Exception {
+    public void downloadFile(String url, File file, String keyPath, String method) throws Exception {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
         try {
@@ -240,9 +238,8 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpUtils.RESPONSE_OK) {
                 inputStream = connection.getInputStream();
-                return saveFile(inputStream, file);
+                saveFile(inputStream, file, keyPath, method);
             }
-            return false;
         } catch (Exception e) {
             throw e;
         } finally {
@@ -259,10 +256,10 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
         int redirectedCount = 0;
         do {
             URL url = new URL(videoUrl);
-            connection = (HttpURLConnection)url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
             if (mConfig.shouldIgnoreCertErrors() && connection instanceof
                     HttpsURLConnection) {
-                HttpUtils.trustAllCert((HttpsURLConnection)(connection));
+                HttpUtils.trustAllCert((HttpsURLConnection) (connection));
             }
             connection.setConnectTimeout(mConfig.getConnTimeOut());
             connection.setReadTimeout(mConfig.getReadTimeOut());
@@ -285,7 +282,7 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
         return connection;
     }
 
-    private boolean saveFile(InputStream inputStream, File file) {
+    private void saveFile(InputStream inputStream, File file, String keyPath, String method) throws IOException {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file);
@@ -294,14 +291,13 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
             while ((len = inputStream.read(buf)) != -1) {
                 fos.write(buf, 0, len);
             }
-            return true;
         } catch (IOException e) {
-            LogUtils.w(TAG,file.getAbsolutePath() +
+            LogUtils.w(TAG, file.getAbsolutePath() +
                     " saveFile failed, exception=" + e);
             if (file.exists()) {
                 file.delete();
             }
-            return false;
+            throw e;
         } finally {
             VideoDownloadUtils.close(inputStream);
             VideoDownloadUtils.close(fos);
@@ -317,12 +313,12 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
 
             BufferedWriter bfw =
                     new BufferedWriter(new FileWriter(tempM3U8File, false));
-            bfw.write(M3U8Utils.PLAYLIST_HEADER + "\n");
-            bfw.write(M3U8Utils.TAG_VERSION + ":" + mM3U8.getVersion() + "\n");
-            bfw.write(M3U8Utils.TAG_MEDIA_SEQUENCE + ":" + mM3U8.getSequence() +
+            bfw.write(M3U8Constants.PLAYLIST_HEADER + "\n");
+            bfw.write(M3U8Constants.TAG_VERSION + ":" + mM3U8.getVersion() + "\n");
+            bfw.write(M3U8Constants.TAG_MEDIA_SEQUENCE + ":" + mM3U8.getSequence() +
                     "\n");
 
-            bfw.write(M3U8Utils.TAG_TARGET_DURATION + ":" +
+            bfw.write(M3U8Constants.TAG_TARGET_DURATION + ":" +
                     mM3U8.getTargetDuration() + "\n");
 
             for (M3U8Ts m3u8Ts : mTsList) {
@@ -332,7 +328,7 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
                         if (m3u8Ts.getKeyUri() != null) {
                             File keyFile = new File(mSaveDir, m3u8Ts.getLocalKeyUri());
                             if (!m3u8Ts.isMessyKey() && keyFile.exists()) {
-                                key += ",URI=\"" + m3u8Ts.getLocalKeyUri() + "\"";
+                                key += ",URI=\"" + keyFile.getAbsolutePath() + "\"";
                             } else {
                                 key += ",URI=\"" + m3u8Ts.getKeyUri() + "\"";
                             }
@@ -340,18 +336,18 @@ public class M3U8VideoDownloadTask extends VideoDownloadTask {
                         if (m3u8Ts.getKeyIV() != null) {
                             key += ",IV=" + m3u8Ts.getKeyIV();
                         }
-                        bfw.write(M3U8Utils.TAG_KEY + ":" + key + "\n");
+                        bfw.write(M3U8Constants.TAG_KEY + ":" + key + "\n");
                     }
                 }
                 if (m3u8Ts.hasDiscontinuity()) {
-                    bfw.write(M3U8Utils.TAG_DISCONTINUITY + "\n");
+                    bfw.write(M3U8Constants.TAG_DISCONTINUITY + "\n");
                 }
-                bfw.write(M3U8Utils.TAG_MEDIA_DURATION + ":" + m3u8Ts.getDuration() +
+                bfw.write(M3U8Constants.TAG_MEDIA_DURATION + ":" + m3u8Ts.getDuration() +
                         ",\n");
-                bfw.write(m3u8Ts.getIndexName());
+                bfw.write(mSaveDir.getAbsolutePath() + File.separator + m3u8Ts.getIndexName());
                 bfw.newLine();
             }
-            bfw.write(M3U8Utils.TAG_ENDLIST);
+            bfw.write(M3U8Constants.TAG_ENDLIST);
             bfw.flush();
             bfw.close();
 

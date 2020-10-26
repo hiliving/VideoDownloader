@@ -1,4 +1,4 @@
-package com.jeffmony.videodemo;
+package com.jeffmony.videodemo.download;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,12 +13,20 @@ import androidx.annotation.Nullable;
 
 import com.jeffmony.downloader.model.VideoTaskItem;
 import com.jeffmony.downloader.model.VideoTaskState;
+import com.jeffmony.downloader.utils.LogUtils;
+import com.jeffmony.downloader.utils.VideoDownloadUtils;
+import com.jeffmony.videodemo.play.PlayerActivity;
+import com.jeffmony.videodemo.R;
 
-public class VideoListAdapter extends ArrayAdapter<VideoTaskItem> {
+import java.io.File;
+
+public class VideoDownloadListAdapter extends ArrayAdapter<VideoTaskItem> {
+
+    private static final String TAG = "VideoListAdapter";
 
     private Context mContext;
 
-    public VideoListAdapter(Context context, int resource, VideoTaskItem[] items) {
+    public VideoDownloadListAdapter(Context context, int resource, VideoTaskItem[] items) {
         super(context, resource, items);
         mContext = context;
     }
@@ -35,8 +43,21 @@ public class VideoListAdapter extends ArrayAdapter<VideoTaskItem> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, PlayerActivity.class);
-                intent.putExtra("videoUrl", item.getFilePath());
-                mContext.startActivity(intent);
+                String filePath = item.getFilePath();
+                File file = new File(filePath);
+                if (file.exists()) {
+                    intent.putExtra("videoUrl", item.getFilePath());
+                    mContext.startActivity(intent);
+                } else {
+                    File mp4File = new File(filePath.substring(0, filePath.lastIndexOf("/")), VideoDownloadUtils.OUPUT_VIDEO);
+                    if (item.isHlsType() && mp4File.exists()) {
+                        intent.putExtra("videoUrl", mp4File.getAbsolutePath());
+                        mContext.startActivity(intent);
+                    } else {
+                        LogUtils.w(TAG, "File = " + filePath + " is gone");
+                    }
+                }
+
             }
         });
         setStateText(stateTextView, playBtn, item);

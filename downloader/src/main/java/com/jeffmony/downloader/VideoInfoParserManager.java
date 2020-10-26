@@ -116,7 +116,7 @@ public class VideoInfoParserManager {
             }
             // Add more video mimeType.
             String mimeType = HttpUtils.getMimeType(mConfig, finalUrl, null, headers);
-            LogUtils.i(TAG,"parseVideoInfo mimeType=" + mimeType);
+            LogUtils.i(TAG, "parseVideoInfo mimeType=" + mimeType);
             if (mimeType != null) {
                 mimeType = mimeType.toLowerCase();
                 taskItem.setMimeType(mimeType);
@@ -171,13 +171,14 @@ public class VideoInfoParserManager {
                 listener.onLiveM3U8Callback(taskItem);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             listener.onM3U8InfoFailed(e);
         }
     }
 
     public void parseM3U8File(VideoTaskItem taskItem,
                               IVideoInfoParseListener callback) {
-        File remoteM3U8File = new File(taskItem.getSaveDir(), "remote.m3u8");
+        File remoteM3U8File = new File(taskItem.getSaveDir(), VideoDownloadUtils.REMOTE_M3U8);
         if (!remoteM3U8File.exists()) {
             callback.onM3U8FileParseFailed(
                     taskItem, new Throwable("Cannot find remote.m3u8 file."));
@@ -188,6 +189,7 @@ public class VideoInfoParserManager {
                     remoteM3U8File);
             callback.onM3U8FileParseSuccess(taskItem, m3u8);
         } catch (Exception e) {
+            e.printStackTrace();
             callback.onM3U8FileParseFailed(taskItem, e);
         }
     }

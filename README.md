@@ -6,8 +6,15 @@
 > * 视频下载完成，可以点击播放视频文件
 > * 视频下载数据库记录视频下载信息
 > * 增加视频下载队列
+> * 增加M3U8合并为MP4的功能
 
 #### 版本更新
+##### 4.2.0
+> * 裁剪ffmpeg库，从10M降至1M
+> * 优化TS合并逻辑
+##### 4.1.0
+> * M3U8文件下载完成后合并为MP4文件
+> * 优化部分HTTPS链接下载失败的问题
 ##### 3.0.0
 > * 解决部分M3U8视频下载失败的问题
 > * 更新playersdk版本
@@ -21,7 +28,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.JeffMony:VideoDownloader:3.0.0'
+    implementation 'com.github.JeffMony:VideoDownloader:4.2.0'
 }
 ```
 
@@ -38,6 +45,7 @@ VideoDownloadConfig config = new VideoDownloadManager.Build(this)
     .setTimeOut(DownloadConstants.READ_TIMEOUT, DownloadConstants.CONN_TIMEOUT)
     .setConcurrentCount(DownloadConstants.CONCURRENT)
     .setIgnoreCertErrors(true)
+    .setShouldM3U8Merged(true)
     .buildConfig();
 VideoDownloadManager.getInstance().initConfig(config);
 ```

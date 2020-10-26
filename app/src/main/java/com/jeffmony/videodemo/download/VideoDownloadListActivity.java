@@ -1,4 +1,4 @@
-package com.jeffmony.videodemo;
+package com.jeffmony.videodemo.download;
 
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +14,7 @@ import com.jeffmony.downloader.listener.DownloadListener;
 import com.jeffmony.downloader.listener.IDownloadInfosCallback;
 import com.jeffmony.downloader.model.VideoTaskItem;
 import com.jeffmony.downloader.utils.LogUtils;
+import com.jeffmony.videodemo.R;
 
 import java.util.List;
 
@@ -25,8 +26,8 @@ public class VideoDownloadListActivity extends AppCompatActivity implements View
     private Button mStartAllBtn;
     private ListView mDownloadListView;
 
-    private VideoListAdapter mAdapter;
-    private VideoTaskItem[] items = new VideoTaskItem[6];
+    private VideoDownloadListAdapter mAdapter;
+    private VideoTaskItem[] items = new VideoTaskItem[7];
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,12 +43,13 @@ public class VideoDownloadListActivity extends AppCompatActivity implements View
     }
 
     private void initDatas() {
-        VideoTaskItem item1 = new VideoTaskItem("https://tv2.youkutv.cc/2020/04/14/g66RjAQIHCKD4Ll0/playlist.m3u8");
-        VideoTaskItem item2 = new VideoTaskItem("https://tv2.youkutv.cc/2020/04/14/L18vx0UQB4Ri3gcn/playlist.m3u8");
+        VideoTaskItem item1 = new VideoTaskItem("http://video.yjf138.com:8091/20180812/6yl0Q2YZ/index.m3u8");
+        VideoTaskItem item2 = new VideoTaskItem("https://videos.kkyun-iqiyi.com/20171117/XZiuPaA3/index.m3u8");
         VideoTaskItem item3 = new VideoTaskItem("https://tv2.youkutv.cc/2020/04/14/MbqulRmS8sjQGJG9/playlist.m3u8");
         VideoTaskItem item4 = new VideoTaskItem("https://tv2.youkutv.cc/2020/04/14/Pejd7TL3wdLZVbxO/playlist.m3u8");
         VideoTaskItem item5 = new VideoTaskItem("https://tv2.youkutv.cc/2020/04/13/AWlDA5ORHHzLX81U/playlist.m3u8");
         VideoTaskItem item6 = new VideoTaskItem("https://hls.aoxtv.com/v3.szjal.cn/20200114/dtOHlPFE/index.m3u8");
+        VideoTaskItem item7 = new VideoTaskItem("http://videoconverter.vivo.com.cn/201706/655_1498479540118.mp4.main.m3u8");
 
         items[0] = item1;
         items[1] = item2;
@@ -55,8 +57,9 @@ public class VideoDownloadListActivity extends AppCompatActivity implements View
         items[3] = item4;
         items[4] = item5;
         items[5] = item6;
+        items[6] = item7;
 
-        mAdapter = new VideoListAdapter(this, R.layout.download_item, items);
+        mAdapter = new VideoDownloadListAdapter(this, R.layout.download_item, items);
         mDownloadListView.setAdapter(mAdapter);
 
         VideoDownloadManager.getInstance().fetchDownloadItems(mInfosCallback);

@@ -13,6 +13,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.jeffmony.videodemo.download.DownloadSettingsActivity;
+import com.jeffmony.videodemo.download.VideoDownloadListActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +30,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         requestPermissions();
-
         initViews();
-
     }
 
     private void initViews() {

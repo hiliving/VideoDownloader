@@ -13,10 +13,11 @@ public class VideoDownloadConfig {
     private boolean mRedirect;
     private boolean mIgnoreAllCertErrors;
     private int mConcurrentCount;
+    private boolean mShouldM3U8Merged;
 
     public VideoDownloadConfig(Context context, File cacheRoot, int readTimeOut,
                                int connTimeOut, boolean redirect, boolean ignoreAllCertErrors,
-                               int concurrentCount) {
+                               int concurrentCount, boolean shouldM3U8Merged) {
         mContext = context;
         mCacheRoot = cacheRoot;
         mReadTimeOut = readTimeOut;
@@ -24,9 +25,12 @@ public class VideoDownloadConfig {
         mRedirect = redirect;
         mIgnoreAllCertErrors = ignoreAllCertErrors;
         mConcurrentCount = concurrentCount;
+        mShouldM3U8Merged = shouldM3U8Merged;
     }
 
-    public Context getContext() { return mContext; }
+    public Context getContext() {
+        return mContext;
+    }
 
     public File getCacheRoot() {
         return mCacheRoot;
@@ -48,11 +52,19 @@ public class VideoDownloadConfig {
         return mIgnoreAllCertErrors;
     }
 
-    public void setIgnoreAllCertErrors(boolean ignoreAllCertErrors) { mIgnoreAllCertErrors = ignoreAllCertErrors; }
+    public void setIgnoreAllCertErrors(boolean ignoreAllCertErrors) {
+        mIgnoreAllCertErrors = ignoreAllCertErrors;
+    }
 
     public int getConcurrentCount() {
         return mConcurrentCount;
     }
 
-    public void setConcurrentCount(int count) { mConcurrentCount = count; }
+    public void setConcurrentCount(int count) {
+        mConcurrentCount = count;
+    }
+
+    public void setShouldM3U8Merged(boolean enable) { mShouldM3U8Merged = enable; }
+
+    public boolean shouldM3U8Merged() { return mShouldM3U8Merged; }
 }

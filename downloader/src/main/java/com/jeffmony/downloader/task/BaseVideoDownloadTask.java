@@ -78,7 +78,7 @@ public class BaseVideoDownloadTask extends VideoDownloadTask {
                         videoFile.createNewFile();
                     }
                 } catch (Exception e) {
-                    LogUtils.w(TAG,"BaseDownloadTask createNewFile failed, exception=" +
+                    LogUtils.w(TAG, "BaseDownloadTask createNewFile failed, exception=" +
                             e.getMessage());
                     return;
                 }
@@ -96,15 +96,18 @@ public class BaseVideoDownloadTask extends VideoDownloadTask {
                     int readLength = 0;
                     while ((readLength = inputStream.read(buf)) != -1) {
                         if (mCurrentCachedSize + readLength > mTotalLength) {
-                            randomAccessFile.write(buf, 0, (int)(mTotalLength - mCurrentCachedSize));
+                            randomAccessFile.write(buf, 0, (int) (mTotalLength - mCurrentCachedSize));
                             mCurrentCachedSize = mTotalLength;
                         } else {
                             randomAccessFile.write(buf, 0, readLength);
                             mCurrentCachedSize += readLength;
                         }
+                        LogUtils.i(TAG, "mCurrentCachedSize=" + mCurrentCachedSize);
                         notifyDownloadProgress();
                     }
                 } catch (Exception e) {
+                    LogUtils.w(TAG, "FAILED, exception=" + e.getMessage());
+                    e.printStackTrace();
                     notifyDownloadError(e);
                 } finally {
                     try {
@@ -115,7 +118,7 @@ public class BaseVideoDownloadTask extends VideoDownloadTask {
                             randomAccessFile.close();
                         }
                     } catch (IOException e) {
-                        LogUtils.w(TAG,"Close stream failed, exception: " +
+                        LogUtils.w(TAG, "Close stream failed, exception: " +
                                 e.getMessage());
                     }
                 }
@@ -171,7 +174,11 @@ public class BaseVideoDownloadTask extends VideoDownloadTask {
     private InputStream getResponseBody(String url, long start, long end)
             throws IOException {
         HttpURLConnection connection = openConnection(url);
-        connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
+        if (end == mTotalLength) {
+            connection.setRequestProperty("Range", "bytes=" + start + "-");
+        } else {
+            connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
+        }
         return connection.getInputStream();
     }
 
@@ -200,10 +207,10 @@ public class BaseVideoDownloadTask extends VideoDownloadTask {
     private HttpURLConnection openConnection(String videoUrl) throws IOException {
         HttpURLConnection connection;
         URL url = new URL(videoUrl);
-        connection = (HttpURLConnection)url.openConnection();
+        connection = (HttpURLConnection) url.openConnection();
         if (mConfig.shouldIgnoreCertErrors() && connection instanceof
                 HttpsURLConnection) {
-            HttpUtils.trustAllCert((HttpsURLConnection)(connection));
+            HttpUtils.trustAllCert((HttpsURLConnection) (connection));
         }
         connection.setConnectTimeout(mConfig.getReadTimeOut());
         connection.setReadTimeout(mConfig.getConnTimeOut());

@@ -10,6 +10,7 @@ public class VideoDownloadSQLiteHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     public static final String TABLE_VIDEO_DOWNLOAD_INFO = "video_download_info";
+
     public static class Columns {
         public static final String _ID = "_id";
         public static final String VIDEO_URL = "video_url";
@@ -22,6 +23,7 @@ public class VideoDownloadSQLiteHelper extends SQLiteOpenHelper {
         public static final String TOTAL_LENGTH = "total_length";
         public static final String CACHED_TS = "cached_ts";
         public static final String TOTAL_TS = "total_ts";
+        public static final String COMPLETED = "completed";
         public static final String FILE_NAME = "file_name";
         public static final String FILE_PATH = "file_path";
     }
@@ -36,10 +38,12 @@ public class VideoDownloadSQLiteHelper extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    }
 
     @Override
-    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    }
 
     private void createVideoDownloadInfoTable(SQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_VIDEO_DOWNLOAD_INFO);
@@ -55,7 +59,8 @@ public class VideoDownloadSQLiteHelper extends SQLiteOpenHelper {
                 + Columns.TOTAL_LENGTH + " BIGINT, "
                 + Columns.CACHED_TS + " INTEGER, "
                 + Columns.TOTAL_TS + " INTEGER , "
-                + Columns.FILE_NAME + " TEXT, "
+                + Columns.COMPLETED + " TINYINT, "
+                + Columns.FILE_NAME + " TEXT Default 0, "
                 + Columns.FILE_PATH + " TEXT);");
     }
 }
